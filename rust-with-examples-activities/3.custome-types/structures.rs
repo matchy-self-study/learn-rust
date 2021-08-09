@@ -35,6 +35,12 @@ fn rect_area(rect: Rectangle) -> f32 {
     (x2 - x1) * (y2 - y1)
 }
 
+fn square(p: Point, edge: f32) -> Rectangle {
+    Rectangle {
+        top_left: Point {x: p.x - edge, y: p.y},
+        bottom_right: Point { x: p.x, y: p.y + edge}}
+}
+
 fn main() {
     // Create struct with field init shorthand
     let name = String::from("Peter");
@@ -53,7 +59,7 @@ fn main() {
 
     // Make a new point by using struct update syntax to use the fields of our
     // other one
-    let bottom_right = Point { x: 5.2, ..point };
+    let bottom_right = Point { x: 15.2, ..point };
 
     // `bottom_right.y` will be the same as `point.y` because we used that field
     // from `point`
@@ -65,7 +71,7 @@ fn main() {
     let _rectangle = Rectangle {
         // struct instantiation is an expression too
         top_left: Point { x: left_edge, y: top_edge },
-        bottom_right: bottom_right,
+        bottom_right: Point {x: bottom_right.x, y: 0.6 },
     };
 
     // Instantiate a unit struct
@@ -83,5 +89,7 @@ fn main() {
     println!("pair contains {:?} and {:?}", integer, decimal);
 
     println!("Rectangle: {:?}", _rectangle);
-    println!("{}", rect_area(_rectangle));
+    println!("Rectangle area: {}", rect_area(_rectangle));
+    println!("Square starting at {:?}", point);
+    println!("Square: {:?}", square(point, 1.0));
 }
