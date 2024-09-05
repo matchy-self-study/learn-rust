@@ -19,7 +19,7 @@ impl fmt::Display for Complex {
     }
 }
 
-fn main() {
+pub fn run() {
     let complex = Complex { real: 3.3, imag: 7.2 };
     println!("Display: {}", complex);
     println!("Debug: {:?}", complex);

@@ -25,7 +25,7 @@ impl fmt::Display for List {
     }
 }
 
-fn main() {
+pub fn run() {
     let v = List(vec![1, 2, 3]);
     println!("{}", v);
 }
