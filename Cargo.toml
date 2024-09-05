@@ -1,6 +1,8 @@
 [package]
 name = "learn-rust"
 version = "0.1.0"
+authors = ["Matchy <matchy233@gmail.com>"]
 edition = "2021"
+default-run = "learn-rust"
 
 [dependencies]
