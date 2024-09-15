@@ -1,20 +1,11 @@
+// This file is auto-generated. Do not edit!
 #[path = "../rust_with_examples_activities/mod.rs"]
 mod rust_with_examples_activities;
-
+#[path = "../utils.rs"]
+mod utils;
 fn main() {
-    // Call the function from the module
-    // print a line of "-" with 80 char
-    println!("--------------------------------------------------------------------------------");
-    println!("Running rust_with_examples_activities::ch01_hello_world::display...\n");
     rust_with_examples_activities::ch01_hello_world::display::run();
-    println!("--------------------------------------------------------------------------------");
-    println!("Running rust_with_examples_activities::ch01_hello_world::display_testcase_list...\n");
     rust_with_examples_activities::ch01_hello_world::display_testcase_list::run();
-    println!("--------------------------------------------------------------------------------");
-    println!("Running rust_with_examples_activities::ch01_hello_world::formatted_print...\n");
     rust_with_examples_activities::ch01_hello_world::formatted_print::run();
-    println!("--------------------------------------------------------------------------------");
-    println!("Running rust_with_examples_activities::ch01_hello_world::formatting...\n");
     rust_with_examples_activities::ch01_hello_world::formatting::run();
-
 }
