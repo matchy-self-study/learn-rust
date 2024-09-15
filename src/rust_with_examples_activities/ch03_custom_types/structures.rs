@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 #[derive(Debug)]
 struct Person {
     name: String,
@@ -27,21 +29,28 @@ struct Rectangle {
 }
 
 fn rect_area(rect: Rectangle) -> f32 {
-    let Rectangle{
-            top_left:     Point{x: x1, y: y1},
-            bottom_right: Point{x: x2, y: y2}
-        } = rect;
+    let Rectangle {
+        top_left: Point { x: x1, y: y1 },
+        bottom_right: Point { x: x2, y: y2 },
+    } = rect;
     println!("{} {} {} {}", x1, x2, y1, y2);
     (x2 - x1) * (y2 - y1)
 }
 
 fn square(p: Point, edge: f32) -> Rectangle {
     Rectangle {
-        top_left: Point {x: p.x - edge, y: p.y},
-        bottom_right: Point { x: p.x, y: p.y + edge}}
+        top_left: Point {
+            x: p.x - edge,
+            y: p.y,
+        },
+        bottom_right: Point {
+            x: p.x,
+            y: p.y + edge,
+        },
+    }
 }
 
-fn main() {
+pub fn run() {
     // Create struct with field init shorthand
     let name = String::from("Peter");
     let age = 27;
@@ -49,7 +58,6 @@ fn main() {
 
     // Print debug struct
     println!("{:?}", peter);
-
 
     // Instantiate a `Point`
     let point: Point = Point { x: 10.3, y: 0.4 };
@@ -66,12 +74,21 @@ fn main() {
     println!("second point: ({}, {})", bottom_right.x, bottom_right.y);
 
     // Destructure the point using a `let` binding
-    let Point { x: left_edge, y: top_edge } = point;
+    let Point {
+        x: left_edge,
+        y: top_edge,
+    } = point;
 
     let _rectangle = Rectangle {
         // struct instantiation is an expression too
-        top_left: Point { x: left_edge, y: top_edge },
-        bottom_right: Point {x: bottom_right.x, y: 0.6 },
+        top_left: Point {
+            x: left_edge,
+            y: top_edge,
+        },
+        bottom_right: Point {
+            x: bottom_right.x,
+            y: 0.6,
+        },
     };
 
     // Instantiate a unit struct
