@@ -1,9 +1,102 @@
+#[path = "src/utils.rs"]
+mod utils;
+use utils::list_mods;
+
+use std::collections::HashMap;
 use std::env;
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::{self, Write};
 use std::path::Path;
 
-fn generate_mod_rs() -> io::Result<()> {
+fn generate_bin() -> io::Result<()> {
+    let bin_dir = utils::get_project_root().unwrap().join("src/bin");
+    let src_dir = utils::get_project_root().unwrap().join("src");
+
+    let list_of_mods = list_mods(src_dir.as_path(), None,None, vec!["utils"]).unwrap();
+
+    // collect module according to ancestors (joined by |)
+    let mut module_map = HashMap::new();
+
+    for module in list_of_mods.iter() {
+        let key = module.ancestors.join("|");
+
+        if module_map.contains_key(&key) {
+            let value: &mut Vec<_> = module_map.get_mut(&key).unwrap();
+            value.push(module);
+        } else {
+            module_map.insert(key, vec![module]);
+        }
+    }
+
+    for (key, module) in module_map.iter() {
+        let splits = key.split("|").collect::<Vec<_>>();
+
+        let root_package = *splits.first().unwrap();
+        let mod_name = splits.last().unwrap().split('_').next().unwrap();
+
+        // split root_package name with _ and get the first letter of each word
+        // use mod_name as the module name
+        // create a file with the module name
+        let fname = root_package
+            .split('_')
+            .map(|s| s.chars().next().unwrap())
+            .collect::<String>()
+            .to_lowercase() + "_" + mod_name + ".rs";
+
+        let mut generated_code = String::new();
+
+        // push line that warns the file is auto-generated
+        generated_code.push_str("// This file is auto-generated. Do not edit!\n");
+
+        generated_code.push_str("#[path = \"../rust_with_examples_activities/mod.rs\"]\nmod rust_with_examples_activities;\n");
+        generated_code.push_str("#[path = \"../utils.rs\"]\nmod utils;\n");
+
+        generated_code.push_str("fn main() {\n");
+
+        for m in module.iter() {
+            let run_fn_str = format!("    {}::run();\n", m.to_string());
+            generated_code.push_str(&run_fn_str);
+        }
+
+        generated_code.push_str("}");
+
+        let dest_path = Path::new(&bin_dir).join(fname);
+
+        match File::create(&dest_path) {
+            Ok(mut f) => {
+                match f.write_all(generated_code.as_bytes()) {
+                    Ok(_) => {
+                        println!("File created: {:?}", dest_path);
+                    }
+                    Err(e) => {
+                        println!("Error: {}", e);
+                    }
+                }
+            }
+            Err(e) => {
+                println!("Error: {}", e);
+            }
+        }
+    }
+
+    // let mut generated_code = String::new();
+
+    // let run_fn_str = module.to_string() + "::run();\n";
+    // generated_code.push_str(&run_fn_str);
+
+    // generated_code.push_str("}");
+
+    //     generated_code.push_str(&format!("mod {};\n", module));
+    //     generated_code.push_str(&format!("use {}::run;\n", module));
+    //     generated_code.push_str("fn main() {\n");
+    //     generated_code.push_str("    run();\n");
+    //     generated_code.push_str("}\n");
+
+    //     let dest_path = Path::new(&bin_dir).join(format!("{}.rs", module));
+    //     let mut f = File::create(&dest_path)?;
+    //     f.write_all(generated_code.as_bytes())?;
+    // }
+
     Ok(())
 }
 
@@ -16,63 +109,16 @@ fn generate_run_all_rs() -> io::Result<()> {
     generated_code.push_str("pub fn run_all() {\n");
 
     // list directoreis in src folder
-    let src_dir = Path::new("src");
+    let src_dir = utils::get_project_root().unwrap().join("src");
 
-    let mut dirs_to_visit = vec![src_dir.to_path_buf()];
+    let list_of_mods = list_mods(src_dir.as_path(), None, None, vec!["utils"]).unwrap();
 
-    // while there are directories to visit
-    while !dirs_to_visit.is_empty() {
-        // get the next directory to visit
-        let dir = dirs_to_visit.pop().unwrap();
-
-        // read the directory and itereate over the entries
-        for entry in fs::read_dir(dir)? {
-            let entry = entry?;
-            let path = entry.path();
-            if path.is_dir() {
-                // if path contains a mod.rs file then add it to the list of directories to visit
-                if path.join("mod.rs").exists() {
-                    dirs_to_visit.push(path.clone());
-                }
-            } else {
-                // skip main.rs and lib.rs
-                if path.ends_with("main.rs") || path.ends_with("lib.rs") || path.ends_with("mod.rs")
-                {
-                    continue;
-                }
-
-                // get all the directories leading to the file
-                let parent_folders = path.ancestors().skip(1).collect::<Vec<_>>();
-
-                let mut parent_folders_str = String::new();
-                for parent_folder in parent_folders.iter().rev().skip(2)
-                {
-                    let parent_folder_name = parent_folder.file_name().unwrap().to_str().unwrap();
-                    parent_folders_str.push_str(&format!("{}::", parent_folder_name));
-                }
-
-                let file_name = path.file_name().unwrap().to_str().unwrap();
-                if file_name.ends_with(".rs") {
-                    let file_name_without_extension = file_name.split('.').next().unwrap();
-
-
-                    // push a - with 80 characters
-                    generated_code.push_str(
-                        "   println!(\"--------------------------------------------------------------------------------\");\n",
-                    );
-                    generated_code.push_str(&format!(
-                        "    println!(\"Running {}{}...\n\");\n",
-                        parent_folders_str, file_name_without_extension
-                    ));
-
-                    generated_code.push_str(&format!(
-                        "    {}{}::run();\n",
-                        parent_folders_str, file_name_without_extension
-                    ));
-                }
-            }
-        }
+    for module in list_of_mods.iter() {
+        generated_code.push_str(&format!("    println!(\"{:-^1$}\");", "", 80));
+        generated_code.push_str(&format!("    println!(\"Running: {}\n\");\n", module));
+        generated_code.push_str(&format!("    {}::run();\n", module));
     }
+
     generated_code.push_str("}\n");
 
     // Write the generated code to a file in the output directory
@@ -85,7 +131,17 @@ fn generate_run_all_rs() -> io::Result<()> {
 }
 
 fn main() -> io::Result<()> {
-    generate_mod_rs()?;
-    generate_run_all_rs()?;
+    match generate_bin() {
+        Ok(_) => {}
+        Err(e) => {
+            println!("Error: {}", e);
+        }
+    }
+    match generate_run_all_rs() {
+        Ok(_) => {}
+        Err(e) => {
+            println!("Error: {}", e);
+        }
+    }
     Ok(())
 }
