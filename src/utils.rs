@@ -1,11 +1,10 @@
 use std::path::{Path, PathBuf};
 use std::{env, fmt};
-use std::{fmt::Write, fs, io::Error};
+use std::{fs, io::Error};
 
 // define a type called Mod
 
 #[derive(Debug)]
-#[allow(dead_code)]
 pub struct Mod {
     pub name: String,
     pub ancestors: Vec<String>,
@@ -19,6 +18,13 @@ impl fmt::Display for Mod {
     }
 }
 
+impl PartialEq for Mod {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && self.ancestors == other.ancestors
+    }
+}
+
+#[allow(dead_code)]
 pub fn get_project_root() -> Result<PathBuf, Error> {
     let mut current_dir = env::current_dir()?;
     loop {
@@ -33,12 +39,13 @@ pub fn get_project_root() -> Result<PathBuf, Error> {
 // self learning note: 's is a lifetime parameter
 // NOTE: this is extremely ugly, don't do that just to remove "Some" while calling the function
 //       I am just learning how to use lifetimes
+#[allow(dead_code)]
 pub fn list_mods<'s>(
     path: &Path,
     root_package: impl Into<Option<&'s str>>,
     filter_list: impl Into<Option<Vec<&'s str>>>,
     exclude_list: impl Into<Option<Vec<&'s str>>>,
-) -> Result<Vec<String>, Error> {
+) -> Result<Vec<Mod>, Error> {
     // filter_list: list of modules to include
     // exclude_list: list of modules to exclude
 
@@ -47,7 +54,6 @@ pub fn list_mods<'s>(
     let filter_list = filter_list.into().unwrap_or_default() as Vec<&str>;
     let exclude_list = exclude_list.into().unwrap_or_default() as Vec<&str>;
 
-    // TODO: make it an iterator
     let mut list_of_mods = Vec::new();
 
     // bfs the src directory
@@ -90,38 +96,48 @@ pub fn list_mods<'s>(
                 }
 
                 // get all the directories leading to the file, skip the first one (it's usually src)
-                let parent_folders = path
+
+                let mut is_valid = filter_list.is_empty();
+
+                // set is_valid to true if any of the parent folders is in filter_list
+                for parent_folder in path
                     .ancestors()
                     .skip(1)
                     .map(|f| f.file_name().unwrap_or_default())
-                    .collect::<Vec<_>>();
-
-                // build the chain of module calling
-                let mut parent_folders_str = String::new();
-
-                let mut is_valid = false;
-                for parent_folder in parent_folders
-                    .into_iter()
-                    .rev()
-                    .skip_while(|x| root_package != *x)
                 {
-                    if filter_list.is_empty()
-                        || filter_list.contains(&parent_folder.to_str().unwrap())
-                    {
+                    if filter_list.contains(&parent_folder.to_str().unwrap()) {
                         is_valid = true;
+                        break;
                     }
-                    if parent_folder == "src" {
-                        continue;
-                    }
-                    write!(parent_folders_str, "{}::", parent_folder.to_str().unwrap()).unwrap();
                 }
 
                 if !is_valid {
                     continue;
                 }
 
-                let file_name = path.file_stem().unwrap().to_str().unwrap();
-                list_of_mods.push(parent_folders_str + &file_name);
+                let ancestors = path
+                .ancestors()
+                .skip(1)
+                .filter_map(|f| f.file_name().and_then(|x| x.to_str()))
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+                .skip_while(|&x| x != root_package)
+                .filter_map(|x| {
+                    if x == "src" {
+                        None
+                    } else {
+                        Some(x.to_string())
+                    }
+                })
+                .collect::<Vec<_>>();
+
+                let new_mod = Mod {
+                    name: path.file_stem().unwrap().to_str().unwrap().to_string(),
+                    ancestors,
+                };
+
+                list_of_mods.push(new_mod);
             }
         }
     }
