@@ -1,6 +1,6 @@
 pub mod ch01_hello_world;
 pub mod ch02_primitives;
-// pub mod ch03_custome_types;
+pub mod ch03_custom_types;
 // pub mod ch04_variable_bindings;
 // pub mod ch05_types;
 // pub mod ch06_conversion;

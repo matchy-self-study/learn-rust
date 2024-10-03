@@ -28,6 +28,8 @@ struct Rectangle {
     bottom_right: Point,
 }
 
+// Activity 1. Add a function rect_area which calculates the area of a Rectangle
+// (try using nested destructuring).
 fn rect_area(rect: Rectangle) -> f32 {
     let Rectangle {
         top_left: Point { x: x1, y: y1 },
@@ -37,6 +39,9 @@ fn rect_area(rect: Rectangle) -> f32 {
     (x2 - x1) * (y2 - y1)
 }
 
+// Activity 2. Add a function square which takes a Point and a f32 as arguments,
+// and returns a Rectangle with its top left corner on the point, and a width and
+// height corresponding to the f32
 fn square(p: Point, edge: f32) -> Rectangle {
     Rectangle {
         top_left: Point {

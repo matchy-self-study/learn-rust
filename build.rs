@@ -79,24 +79,6 @@ fn generate_bin() -> io::Result<()> {
         }
     }
 
-    // let mut generated_code = String::new();
-
-    // let run_fn_str = module.to_string() + "::run();\n";
-    // generated_code.push_str(&run_fn_str);
-
-    // generated_code.push_str("}");
-
-    //     generated_code.push_str(&format!("mod {};\n", module));
-    //     generated_code.push_str(&format!("use {}::run;\n", module));
-    //     generated_code.push_str("fn main() {\n");
-    //     generated_code.push_str("    run();\n");
-    //     generated_code.push_str("}\n");
-
-    //     let dest_path = Path::new(&bin_dir).join(format!("{}.rs", module));
-    //     let mut f = File::create(&dest_path)?;
-    //     f.write_all(generated_code.as_bytes())?;
-    // }
-
     Ok(())
 }
 
@@ -114,7 +96,7 @@ fn generate_run_all_rs() -> io::Result<()> {
     let list_of_mods = list_mods(src_dir.as_path(), None, None, vec!["utils"]).unwrap();
 
     for module in list_of_mods.iter() {
-        generated_code.push_str(&format!("    println!(\"{:-^1$}\");", "", 80));
+        generated_code.push_str(&format!("    println!(\"{:-^1$}\");\n", "", 80));
         generated_code.push_str(&format!("    println!(\"Running: {}\n\");\n", module));
         generated_code.push_str(&format!("    {}::run();\n", module));
     }
@@ -127,6 +109,7 @@ fn generate_run_all_rs() -> io::Result<()> {
     f.write_all(generated_code.as_bytes())?;
 
     println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=src");
     Ok(())
 }
 
